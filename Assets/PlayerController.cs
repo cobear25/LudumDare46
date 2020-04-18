@@ -22,7 +22,11 @@ public class PlayerController : MonoBehaviour
         if (Mathf.Abs(currentAngle - toAngle) < 0.05f) {
             return;
         }
-        GetComponentInChildren<Animator>().Play("Run");
+        if (gameController.armOut) {
+            GetComponentInChildren<Animator>().Play("RunArmless");
+        } else {
+            GetComponentInChildren<Animator>().Play("Run");
+        }
         float twoPi = Mathf.PI * 2;
         while (currentAngle < 0f) {
             currentAngle += twoPi;
@@ -50,10 +54,10 @@ public class PlayerController : MonoBehaviour
             }
         }
         if (goClockwise) {
-            GetComponentInChildren<SpriteRenderer>().flipX = true;
+            transform.localScale = new Vector2(1, -1);
             currentAngle += (moveSpeed * Time.deltaTime);
         } else {
-            GetComponentInChildren<SpriteRenderer>().flipX = false;
+            transform.localScale = new Vector2(1, 1);
             currentAngle -= (moveSpeed * Time.deltaTime);
         }
         Debug.Log("current: " + currentAngle);
@@ -61,15 +65,28 @@ public class PlayerController : MonoBehaviour
         if (Mathf.Abs(currentAngle - toAngle) < (0.05f)) {
             currentAngle = toAngle;
             gameController.StopIndicator();
-            GetComponentInChildren<Animator>().Play("Idle");
+            if (gameController.armOut)
+            {
+                GetComponentInChildren<Animator>().Play("IdleArmless");
+            }
+            else
+            {
+                GetComponentInChildren<Animator>().Play("Idle");
+            }
         }
         transform.position = new Vector2(Mathf.Cos(currentAngle) * gameController.planetRadius, Mathf.Sin(currentAngle) * gameController.planetRadius);
         transform.eulerAngles = new Vector3(0, 0, Mathf.Rad2Deg * currentAngle);
     }
 
     public void GoToAngle(float angle) {
-        // CGPoint(x: controlRing.position.x + cos(launcherAngle) * nobRadius, y: controlRing.position.y + sin(launcherAngle) * nobRadius)
-        // transform.position = new Vector2(Mathf.Cos(angle) * gameController.planetRadius, Mathf.Sin(angle) * gameController.planetRadius);
         toAngle = angle;
+    }
+
+    public void ArmOut() {
+        GetComponentInChildren<Animator>().Play("IdleArmless");
+    }
+
+    public void ArmAway() {
+        GetComponentInChildren<Animator>().Play("Idle");
     }
 }
