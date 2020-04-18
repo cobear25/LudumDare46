@@ -12,11 +12,13 @@ public class GameController : MonoBehaviour
     public Transform leftEye;
     public Transform rightEye;
     public SpriteRenderer mouth;
+    public GameObject plantPlaceholder;
     public GameObject starPrefab;
     public GameObject meteoritePrefab;
     public GameObject crack1Prefab;
     public GameObject crack2Prefab;
     public GameObject crack3Prefab;
+    public GameObject plantPrefab;
     public Sprite[] mouthSprites;
     public Transform currentStar;
 
@@ -25,6 +27,8 @@ public class GameController : MonoBehaviour
     public bool armLoose = false;
     public int planetStatus = 0;
     public bool hasStar = false;
+    public bool aboveCrack = false;
+    bool canCatch = true;
 
     LineRenderer armLine;
     // Start is called before the first frame update
@@ -39,6 +43,7 @@ public class GameController : MonoBehaviour
         armLine.endColor = armColor;
         armLine.numCapVertices = 10;
         armLine.enabled = false;
+        plantPlaceholder.GetComponentInChildren<Animator>().Play("PlantEmpty");
 
         AddStar();
         Invoke("AddMeteorite", 5);
@@ -47,7 +52,8 @@ public class GameController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!hasStar && Input.GetMouseButton(0)) {
+        // stretch arm to catch
+        if (canCatch && Input.GetMouseButton(0)) {
             Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             // hand.position = mousePos;
             float dx = mousePos.x - hand.position.x;
@@ -60,13 +66,18 @@ public class GameController : MonoBehaviour
             armLine.enabled = true;
             armOut = true;
             armLoose = false;
+            hand.GetComponent<CircleCollider2D>().enabled = false;
             player.ArmOut();
+            if (currentStar == null) {
+                hand.GetComponent<Hand>().LetGoOfStar();
+            }
         }
+        // release arm
         if (Input.GetMouseButtonUp(0)) {
-            // release arm
             Invoke("ReleaseArm", 0.1f);
             Invoke("SlowDownArm", 1.0f);
         }
+        // right click to move to point
         if (Input.GetMouseButtonDown(1)) {
             Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             float angle = Mathf.Atan2(mousePos.y, mousePos.x);
@@ -83,6 +94,25 @@ public class GameController : MonoBehaviour
             }
         }
 
+        if (hasStar && !aboveCrack) {
+            Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            float angle = Mathf.Atan2(mousePos.y, mousePos.x);
+            Vector2 position = new Vector2(Mathf.Cos(angle) * planetRadius, Mathf.Sin(angle) * planetRadius);
+            plantPlaceholder.transform.position = position;
+            plantPlaceholder.transform.eulerAngles = new Vector3(0, 0, Mathf.Rad2Deg * angle);
+            plantPlaceholder.GetComponentInChildren<Animator>().Play("Idle");
+            plantPlaceholder.GetComponentInChildren<SpriteRenderer>().color = new Color(1, 1, 1, 0.5f);
+
+            // plant a star
+            if (Input.GetMouseButtonDown(0))
+            {
+                PlantStar(position, angle, currentStar.gameObject);
+            }
+        } else {
+            plantPlaceholder.GetComponentInChildren<Animator>().Play("PlantEmpty");
+            Debug.Log("disable placeholder");
+        }
+
         // camera zoom
         float scroll = Input.GetAxis("Mouse ScrollWheel") * 5f;
         Vector2 cursorPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -93,6 +123,7 @@ public class GameController : MonoBehaviour
 
     private void ReleaseArm() {
         armLoose = true;
+        hand.GetComponent<CircleCollider2D>().enabled = true;
     }
 
     private void SlowDownArm() {
@@ -117,6 +148,28 @@ public class GameController : MonoBehaviour
 
     public void StopIndicator() {
         moveToIndicator.GetComponent<Animator>().Play("Default");
+    }
+
+    private void PlantStar(Vector2 position, float angle, GameObject star) {
+        GameObject plant = Instantiate(plantPrefab, position, Quaternion.identity);
+        plant.transform.eulerAngles = new Vector3(0, 0, Mathf.Rad2Deg * angle);
+        currentStar.GetComponent<Star>().GoToTransform(plant.transform);
+        hand.GetComponent<Hand>().LetGoOfStar();
+        planetStatus++;
+        hasStar = false;
+        Invoke("EnableCatching", 1);
+        Invoke("UpdatePlanetStatus", 7.5f);
+    }
+
+    public void HealCrack(GameObject crack) {
+        currentStar.GetComponent<Star>().GoToTransform(crack.transform);
+        hand.GetComponent<Hand>().LetGoOfStar();
+        hasStar = false;
+        Invoke("EnableCatching", 1);
+    }
+
+    private void EnableCatching() {
+        canCatch = true;
     }
 
     void Awake () {
@@ -166,6 +219,12 @@ public class GameController : MonoBehaviour
     public void CrackHealed() {
         planetStatus++;
         UpdatePlanetStatus();
+    }
+
+    public void StarGrabbed(GameObject star) {
+        hasStar = true;
+        canCatch = false;
+        currentStar = star.transform;
     }
 
     void UpdatePlanetStatus() {

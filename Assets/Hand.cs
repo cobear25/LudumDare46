@@ -31,8 +31,8 @@ public class Hand : MonoBehaviour
             col.rigidbody.constraints = RigidbodyConstraints2D.FreezeRotation;
             hasStar = true;
             col.transform.parent = transform.parent;
-            gameController.hasStar = true;
-            gameController.currentStar = col.transform;
+            gameController.StarGrabbed(col.gameObject);
+            col.gameObject.GetComponent<Star>().HasBeenGrabbed();
         } 
     }
 

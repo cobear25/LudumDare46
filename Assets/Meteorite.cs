@@ -30,5 +30,10 @@ public class Meteorite : MonoBehaviour
             Destroy(gameObject, 5);
             startFading = true;
         }
+        if (col.gameObject.tag == "Plant") {
+            GetComponentInChildren<ParticleSystem>().Stop();
+            Destroy(gameObject, 5);
+            startFading = true;
+        }
     }
 }
