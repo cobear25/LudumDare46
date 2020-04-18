@@ -60,8 +60,6 @@ public class PlayerController : MonoBehaviour
             transform.localScale = new Vector2(1, 1);
             currentAngle -= (moveSpeed * Time.deltaTime);
         }
-        Debug.Log("current: " + currentAngle);
-        Debug.Log("to: " + toAngle);
         if (Mathf.Abs(currentAngle - toAngle) < (0.05f)) {
             currentAngle = toAngle;
             gameController.StopIndicator();
@@ -76,6 +74,8 @@ public class PlayerController : MonoBehaviour
         }
         transform.position = new Vector2(Mathf.Cos(currentAngle) * gameController.planetRadius, Mathf.Sin(currentAngle) * gameController.planetRadius);
         transform.eulerAngles = new Vector3(0, 0, Mathf.Rad2Deg * currentAngle);
+        gameController.leftEye.eulerAngles = new Vector3(0, 0, Mathf.Rad2Deg * currentAngle);
+        gameController.rightEye.eulerAngles = new Vector3(0, 0, Mathf.Rad2Deg * currentAngle);
     }
 
     public void GoToAngle(float angle) {
