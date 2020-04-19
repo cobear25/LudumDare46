@@ -29,8 +29,9 @@ public class GameController : MonoBehaviour
     public CinemachineVirtualCamera virtualCamera;
     public Transform backGlow;
     public GameObject gameOverPanel;
-    public GameObject introPanel;
+    public GameObject introPanel; 
     public GameObject winPanel;
+    public GameObject finalWinPanel;
     public Text tutorialText;
     public GameObject skipTutorialButton;
 
@@ -69,12 +70,13 @@ public class GameController : MonoBehaviour
         virtualCamera.enabled = false;
         gameOverPanel.SetActive(false);
         winPanel.SetActive(false);
+        finalWinPanel.SetActive(false);
         skipTutorialButton.SetActive(false);
         AddStar();
     }
 
     void AddFourCracks() {
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 3; i++) {
             float angle = Random.Range(0.0f, Mathf.PI * 2f);
             if (i == 0) {
                 GameObject crack = Instantiate(crackPrefabs[i]);
@@ -302,28 +304,28 @@ public class GameController : MonoBehaviour
         float xDirection = star.transform.position.x < 0 ? 1 : -1;
         float yDirection = star.transform.position.y < 0 ? 1 : -1;
         star.GetComponent<Rigidbody2D>().velocity = new Vector2(Random.Range(0.5f, 1.5f) * xDirection, Random.Range(0.5f, 1.5f) * yDirection);
-        int newStarFrequency = 15;
-        switch (level) {
-            case 0:
-                newStarFrequency = Random.Range(4, 8);
-                break;
-            case 1:
-                newStarFrequency = Random.Range(5, 10);
-                break;
-            case 2:
-                newStarFrequency = Random.Range(5, 15);
-                break;
-            case 3:
-                newStarFrequency = Random.Range(10, 20);
-                break;
-            case 4:
-                newStarFrequency = Random.Range(15, 20);
-                break;
-            default:
-                newStarFrequency = Random.Range(15, 20);
-                break;
-        }
-        Invoke("AddStar", newStarFrequency);
+        // int newStarFrequency = 15;
+        // switch (level) {
+        //     case 0:
+        //         newStarFrequency = Random.Range(4, 8);
+        //         break;
+        //     case 1:
+        //         newStarFrequency = Random.Range(5, 10);
+        //         break;
+        //     case 2:
+        //         newStarFrequency = Random.Range(5, 15);
+        //         break;
+        //     case 3:
+        //         newStarFrequency = Random.Range(10, 20);
+        //         break;
+        //     case 4:
+        //         newStarFrequency = Random.Range(15, 20);
+        //         break;
+        //     default:
+        //         newStarFrequency = Random.Range(15, 20);
+        //         break;
+        // }
+        Invoke("AddStar", Random.Range(3, 8));
     }
 
     bool meteoritesHaveBegun = false;
@@ -355,10 +357,6 @@ public class GameController : MonoBehaviour
                 break;
         }
         Invoke("AddMeteorite", newMeteoriteFrequency);
-        if (inTutorial) {
-            // end tutorial and start game
-            inTutorial = false;
-        }
     }
 
     public void AddCrack(Vector2 position, Vector2 normal) {
@@ -382,6 +380,7 @@ public class GameController : MonoBehaviour
     public void StarGrabbed(GameObject star) {
         hasStar = true;
         canCatch = false;
+        aboveCrack = false;
         currentStar = star.transform;
         if (inTutorial) {
             // show instructions for planting or healing
@@ -446,7 +445,11 @@ public class GameController : MonoBehaviour
     public bool levelCompleted = false;
     void LevelCompleted() {
         levelCompleted = true;
-        winPanel.SetActive(true);
+        if (level >= 4) {
+            finalWinPanel.SetActive(true);
+        } else {
+            winPanel.SetActive(true);
+        }
     }
 
     public void StartGame() {
@@ -468,7 +471,8 @@ public class GameController : MonoBehaviour
         winPanel.SetActive(false);
         AddFourCracks();
         canCatch = true;
-        AddMeteorite();
+        // AddMeteorite();
+        // AddStar();
     }
 
     public void TryAgain() {

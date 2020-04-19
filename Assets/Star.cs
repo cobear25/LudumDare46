@@ -29,10 +29,6 @@ public class Star : MonoBehaviour
                 Destroy(gameObject);
             }
         } 
-
-        if (gameController.levelCompleted) {
-            Destroy(gameObject);
-        }
     }
 
     public void GoToTransform(Transform t) {
