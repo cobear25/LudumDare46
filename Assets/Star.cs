@@ -7,11 +7,14 @@ public class Star : MonoBehaviour
     GameController gameController;
     Transform goTo;
     bool startFading = false;
+    AudioSource audioSource;
+    public AudioSource healSound;
     // Start is called before the first frame update
     void Start()
     {
         gameController = (GameController)FindObjectOfType(typeof(GameController));
         Destroy(gameObject, 100);
+        audioSource = GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
@@ -26,9 +29,11 @@ public class Star : MonoBehaviour
             Color color = GetComponent<SpriteRenderer>().color;
             GetComponent<SpriteRenderer>().color = new Color(color.r, color.g, color.b, color.a - 0.005f);
             if (color.a <= 0) {
-                Destroy(gameObject);
+                Destroy(gameObject, 3);
             }
         } 
+        float distanceFromCenter = Vector2.Distance(transform.position, Vector2.zero);
+        audioSource.volume = 1 / (distanceFromCenter * 10);
     }
 
     public void GoToTransform(Transform t) {
@@ -44,5 +49,6 @@ public class Star : MonoBehaviour
 
     void StartFading() {
         startFading = true;
+        healSound.Play();
     }
 }

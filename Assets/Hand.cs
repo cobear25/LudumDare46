@@ -34,6 +34,7 @@ public class Hand : MonoBehaviour
             gameController.StarGrabbed(col.gameObject);
             col.gameObject.GetComponent<Star>().HasBeenGrabbed();
             col.rigidbody.velocity = Vector2.zero;
+            GetComponent<AudioSource>().Play();
         } 
     }
 

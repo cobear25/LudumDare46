@@ -34,6 +34,8 @@ public class GameController : MonoBehaviour
     public GameObject finalWinPanel;
     public Text tutorialText;
     public GameObject skipTutorialButton;
+    public AudioSource buttonSound;
+    public Toggle audioToggle;
 
     CinemachineBasicMultiChannelPerlin perlin;
 
@@ -64,6 +66,10 @@ public class GameController : MonoBehaviour
         armLine.enabled = false;
         plantPlaceholder.GetComponentInChildren<Animator>().Play("PlantEmpty");
         plantPlaceholder.GetComponentInChildren<SpriteRenderer>().color = new Color(1, 1, 1, 0.5f);
+
+        if (AudioListener.pause) {
+            audioToggle.isOn = true;
+        }
 
         AddFourCracks();
 
@@ -191,6 +197,9 @@ public class GameController : MonoBehaviour
     }
 
     private void ReleaseArm() {
+        if (armOut && !armLoose && !hasStar && hand.GetComponent<CircleCollider2D>().enabled == false && canCatch) {
+            GetComponent<AudioSource>().Play();
+        }
         armLoose = true;
         hand.GetComponent<CircleCollider2D>().enabled = true;
     }
@@ -267,7 +276,7 @@ public class GameController : MonoBehaviour
                 break;
             case 4:
                 tutorialText.text = "Plant trees to protect the planet, and fill all the cracks to heal it. Heal all the cracks to go on to the next level.";
-                Invoke("EndTutorial", 15);
+                Invoke("EndTutorial", 10);
                 break;
             default:
                 break;
@@ -444,6 +453,7 @@ public class GameController : MonoBehaviour
 
     public bool levelCompleted = false;
     void LevelCompleted() {
+        EndTutorial();
         levelCompleted = true;
         if (level >= 4) {
             finalWinPanel.SetActive(true);
@@ -453,6 +463,7 @@ public class GameController : MonoBehaviour
     }
 
     public void StartGame() {
+        buttonSound.Play();
         inTutorial = true;
         introPanel.SetActive(false);
         tutorialText.text = "Right-click to move around the planet";
@@ -465,6 +476,7 @@ public class GameController : MonoBehaviour
     }
 
     public void StartNextLevel() {
+        buttonSound.Play();
         level++;
         levelCompleted = false;
         planet.sprite = planetSprites[level];
@@ -476,6 +488,11 @@ public class GameController : MonoBehaviour
     }
 
     public void TryAgain() {
+        buttonSound.Play();
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void ToggleSound(bool off) {
+        AudioListener.pause = off;
     }
 }

@@ -5,6 +5,8 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
     public GameController gameController;
+    public ParticleSystem ps;
+    public AudioSource audioSource;
     public float moveSpeed = 0.1f;
 
     private float toAngle = 0;
@@ -14,6 +16,7 @@ public class PlayerController : MonoBehaviour
     {
         currentAngle = Mathf.Atan2(transform.position.y, transform.position.x);
         toAngle = currentAngle;
+        ps.Stop();
     }
 
     // Update is called once per frame
@@ -71,6 +74,8 @@ public class PlayerController : MonoBehaviour
             {
                 GetComponentInChildren<Animator>().Play("Idle");
             }
+            ps.Stop();
+            audioSource.Stop();
         }
         transform.position = new Vector2(Mathf.Cos(currentAngle) * gameController.planetRadius, Mathf.Sin(currentAngle) * gameController.planetRadius);
         transform.eulerAngles = new Vector3(0, 0, Mathf.Rad2Deg * currentAngle);
@@ -79,6 +84,8 @@ public class PlayerController : MonoBehaviour
     }
 
     public void GoToAngle(float angle) {
+        ps.Play();
+        audioSource.Play();
         toAngle = angle;
     }
 
