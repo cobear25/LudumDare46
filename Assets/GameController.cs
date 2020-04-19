@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cinemachine;
 
 public class GameController : MonoBehaviour
 {
@@ -22,6 +23,9 @@ public class GameController : MonoBehaviour
     public GameObject plantPrefab;
     public Sprite[] mouthSprites;
     public Transform currentStar;
+    public CinemachineVirtualCamera virtualCamera;
+
+    CinemachineBasicMultiChannelPerlin perlin;
 
     public float planetRadius = 10;
     public bool armOut = false;
@@ -67,6 +71,8 @@ public class GameController : MonoBehaviour
 
         AddStar();
         Invoke("AddMeteorite", 10);
+
+        virtualCamera.enabled = false;
     }
 
     // Update is called once per frame
@@ -273,10 +279,16 @@ public class GameController : MonoBehaviour
     }
 
     public void AddCrack(Vector2 position, Vector2 normal) {
+        virtualCamera.enabled = true;
+        Invoke("EndShake", 0.1f);
         int rand = Random.Range(0, 3);
         Instantiate(crackPrefabs[rand], position, Quaternion.FromToRotation(Vector2.up, normal));
         planetStatus++;
         UpdatePlanetStatus();
+    }
+
+    void EndShake() {
+        virtualCamera.enabled = false;
     }
 
     public void CrackHealed() {
