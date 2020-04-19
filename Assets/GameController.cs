@@ -24,6 +24,7 @@ public class GameController : MonoBehaviour
     public Sprite[] mouthSprites;
     public Transform currentStar;
     public CinemachineVirtualCamera virtualCamera;
+    public Transform backGlow;
 
     CinemachineBasicMultiChannelPerlin perlin;
 
@@ -94,6 +95,7 @@ public class GameController : MonoBehaviour
             leftEyeOutside.color = planet.color;
             rightEyeOutside.color = planet.color;
             player.GetComponentInChildren<SpriteRenderer>().color = planet.color;
+            backGlow.GetComponent<SpriteRenderer>().color = planet.color;
             if (planet.color.a <= 0) {
                 planet.GetComponent<CircleCollider2D>().enabled = false;
             }
@@ -306,30 +308,39 @@ public class GameController : MonoBehaviour
         switch (planetStatus) {
             case 0:
                 mouth.sprite = mouthSprites[0];
+                backGlow.localScale = new Vector2(0.9f, 0.9f);
                 break;
             case 1:
                 mouth.sprite = mouthSprites[1];
+                backGlow.localScale = new Vector2(0.89f, 0.89f);
                 break;
             case 2:
                 mouth.sprite = mouthSprites[2];
+                backGlow.localScale = new Vector2(0.88f, 0.88f);
                 break;
             case 3:
                 mouth.sprite = mouthSprites[3];
+                backGlow.localScale = new Vector2(0.87f, 0.87f);
                 break;
             case 4:
                 mouth.sprite = mouthSprites[4];
+                backGlow.localScale = new Vector2(0.86f, 0.85f);
                 break;
             case 5:
                 mouth.sprite = mouthSprites[5];
+                backGlow.localScale = new Vector2(0.85f, 0.83f);
                 break;
             case 6:
                 mouth.sprite = mouthSprites[6];
+                backGlow.localScale = new Vector2(0.84f, 0.81f);
                 break;
             case 7:
                 mouth.sprite = mouthSprites[7];
+                backGlow.localScale = new Vector2(0.83f, 0.79f);
                 break;
             case 8:
                 mouth.sprite = mouthSprites[8];
+                backGlow.localScale = new Vector2(0.82f, 0.77f);
                 break;
             default:
                 break;
