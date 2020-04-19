@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Cinemachine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameController : MonoBehaviour
 {
@@ -25,6 +27,10 @@ public class GameController : MonoBehaviour
     public Transform currentStar;
     public CinemachineVirtualCamera virtualCamera;
     public Transform backGlow;
+    public GameObject gameOverPanel;
+    public GameObject introPanel;
+    public Text tutorialText;
+    public GameObject skipTutorialButton;
 
     CinemachineBasicMultiChannelPerlin perlin;
 
@@ -35,7 +41,8 @@ public class GameController : MonoBehaviour
     public bool hasStar = false;
     public bool aboveCrack = false;
     public bool isGameOver = false;
-    bool canCatch = true;
+    bool canCatch = false;
+    bool inTutorial = false;
 
     public int level = 1;
 
@@ -70,10 +77,10 @@ public class GameController : MonoBehaviour
             UpdatePlanetStatus();
         }
 
-        AddStar();
-        Invoke("AddMeteorite", 10);
-
         virtualCamera.enabled = false;
+        gameOverPanel.SetActive(false);
+        skipTutorialButton.SetActive(false);
+        AddStar();
     }
 
     // Update is called once per frame
@@ -126,6 +133,11 @@ public class GameController : MonoBehaviour
         if (Input.GetMouseButtonUp(0)) {
             Invoke("ReleaseArm", 0.1f);
             Invoke("SlowDownArm", 1.0f);
+            if (inTutorial && tutorialStep == 1 && !hasCalledTutorial2)
+            {
+                hasCalledTutorial2 = true;
+                Invoke("NextTutorialStep", 2);
+            }
         }
         // right click to move to point
         if (Input.GetMouseButtonDown(1)) {
@@ -134,6 +146,13 @@ public class GameController : MonoBehaviour
             player.GoToAngle(angle);
             moveToIndicator.position = new Vector2(Mathf.Cos(angle) * planetRadius, Mathf.Sin(angle) * planetRadius);
             moveToIndicator.GetComponent<Animator>().Play("MoveToIndicator");
+            // for tutorial enable grabbing
+            if (!hasStar && inTutorial) {
+                canCatch = true;
+                if (tutorialStep == 0) {
+                    Invoke("NextTutorialStep", 2);
+                }
+            }
         }
         if (armOut) {
             armLine.SetPositions(new Vector3[] {hand.position, shoulder.position} );
@@ -198,6 +217,12 @@ public class GameController : MonoBehaviour
         hand.GetComponent<Hand>().LetGoOfStar();
         hasStar = false;
         Invoke("EnableCatching", 1);
+        if (inTutorial) {
+            if (!meteoritesHaveBegun) {
+                Invoke("AddMeteorite", 2);
+            }
+            Invoke("NextTutorialStep", 2);
+        }
     }
 
     public void HealCrack(GameObject crack) {
@@ -205,10 +230,50 @@ public class GameController : MonoBehaviour
         hand.GetComponent<Hand>().LetGoOfStar();
         hasStar = false;
         Invoke("EnableCatching", 1);
+        if (inTutorial) {
+            if (!meteoritesHaveBegun) {
+                Invoke("AddMeteorite", 2);
+            }
+            Invoke("NextTutorialStep", 2);
+        }
     }
 
     private void EnableCatching() {
         canCatch = true;
+    }
+    private bool hasCalledTutorial2 = false;
+    private int tutorialStep = 0;
+    private void NextTutorialStep() {
+        tutorialStep += 1;
+        switch (tutorialStep) {
+            case 1:
+                tutorialText.text = "Left-click to pull back your arm and launch it at a shooting star.";
+                break;
+            case 2:
+                tutorialText.text = "Try your best to grab a star, you'll need it.";
+                break;
+            case 3:
+                tutorialText.text = "Left-click on a crack to heal it, or anywhere else to plant a tree";
+                break;
+            case 4:
+                tutorialText.text = "Plant trees to protect the planet, and fill all the cracks to heal it. Heal all the cracks to go on to the next level.";
+                Invoke("EndTutorial", 15);
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void EndTutorial() {
+        tutorialText.text = "";
+        inTutorial = false;
+        if (!meteoritesHaveBegun) {
+            AddMeteorite();
+        }
+        if (!hasStar) {
+            canCatch = true;
+        }
+        skipTutorialButton.SetActive(false);
     }
 
     void Awake () {
@@ -216,7 +281,9 @@ public class GameController : MonoBehaviour
     }
 
     private void OnDrawGizmos() {
+        #if UNITY_EDITOR
         UnityEditor.Handles.DrawWireDisc(Vector3.zero, Vector3.forward, planetRadius);
+        #endif
     }
 
     void AddStar() {
@@ -251,7 +318,9 @@ public class GameController : MonoBehaviour
         Invoke("AddStar", newStarFrequency);
     }
 
+    bool meteoritesHaveBegun = false;
     void AddMeteorite() {
+        meteoritesHaveBegun = true;
         float angle = Random.Range(0.0f, Mathf.PI * 2f);
         GameObject meteorite = Instantiate(meteoritePrefab, new Vector2(0, 16), Quaternion.identity);
         meteorite.transform.position = new Vector2(Mathf.Cos(angle) * 18, Mathf.Sin(angle) * 18);
@@ -278,11 +347,15 @@ public class GameController : MonoBehaviour
                 break;
         }
         Invoke("AddMeteorite", newMeteoriteFrequency);
+        if (inTutorial) {
+            // end tutorial and start game
+            inTutorial = false;
+        }
     }
 
     public void AddCrack(Vector2 position, Vector2 normal) {
         virtualCamera.enabled = true;
-        Invoke("EndShake", 0.1f);
+        Invoke("EndShake", 0.15f);
         int rand = Random.Range(0, 3);
         Instantiate(crackPrefabs[rand], position, Quaternion.FromToRotation(Vector2.up, normal));
         planetStatus++;
@@ -302,6 +375,13 @@ public class GameController : MonoBehaviour
         hasStar = true;
         canCatch = false;
         currentStar = star.transform;
+        if (inTutorial) {
+            // show instructions for planting or healing
+            if (tutorialStep == 2) {
+                tutorialStep = 2;
+                Invoke("NextTutorialStep", 2);
+            }
+        }
     }
 
     void UpdatePlanetStatus() {
@@ -324,23 +404,23 @@ public class GameController : MonoBehaviour
                 break;
             case 4:
                 mouth.sprite = mouthSprites[4];
-                backGlow.localScale = new Vector2(0.86f, 0.85f);
+                backGlow.localScale = new Vector2(0.85f, 0.85f);
                 break;
             case 5:
                 mouth.sprite = mouthSprites[5];
-                backGlow.localScale = new Vector2(0.85f, 0.83f);
+                backGlow.localScale = new Vector2(0.83f, 0.83f);
                 break;
             case 6:
                 mouth.sprite = mouthSprites[6];
-                backGlow.localScale = new Vector2(0.84f, 0.81f);
+                backGlow.localScale = new Vector2(0.81f, 0.81f);
                 break;
             case 7:
                 mouth.sprite = mouthSprites[7];
-                backGlow.localScale = new Vector2(0.83f, 0.79f);
+                backGlow.localScale = new Vector2(0.79f, 0.79f);
                 break;
             case 8:
                 mouth.sprite = mouthSprites[8];
-                backGlow.localScale = new Vector2(0.82f, 0.77f);
+                backGlow.localScale = new Vector2(0.77f, 0.77f);
                 break;
             default:
                 break;
@@ -359,11 +439,23 @@ public class GameController : MonoBehaviour
 
     }
 
+    public void StartGame() {
+        inTutorial = true;
+        introPanel.SetActive(false);
+        tutorialText.text = "Right-click to move around the planet";
+        skipTutorialButton.SetActive(true);
+    }
+
     void GameOver() {
+        gameOverPanel.SetActive(true);
         isGameOver = true;
     }
 
     public void StartNextLevel() {
         level++;
+    }
+
+    public void TryAgain() {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
