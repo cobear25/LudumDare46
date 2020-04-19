@@ -43,6 +43,7 @@ GameObject:
   - component: {fileID: 3778060229441155044}
   - component: {fileID: 3778060229441155043}
   - component: {fileID: 3778060229441155042}
+  - component: {fileID: 7727551888464941231}
   m_Layer: 10
   m_Name: PlantSprite
   m_TagString: Plant
@@ -149,3 +150,15 @@ CapsuleCollider2D:
   m_Offset: {x: -0.015296788, y: 1.25799}
   m_Size: {x: 2.1986358, y: 1.0608535}
   m_Direction: 1
+--- !u!114 &7727551888464941231
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3778060229441155046}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7085ef333f63647ddbd49ea8bd85aa1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

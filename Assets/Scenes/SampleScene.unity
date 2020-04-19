@@ -557,6 +557,24 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1103886580 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3778060229441155046, guid: d58020f1a9f0c495ba714a112b52358c,
+    type: 3}
+  m_PrefabInstance: {fileID: 1976066627}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1103886585
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1103886580}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7085ef333f63647ddbd49ea8bd85aa1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1120436131
 GameObject:
   m_ObjectHideFlags: 0
@@ -742,6 +760,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 1163167564}
+  planet: {fileID: 1446817662}
   moveToIndicator: {fileID: 904157512}
   hand: {fileID: 1120436132}
   shoulder: {fileID: 499912513}
@@ -749,17 +768,17 @@ MonoBehaviour:
   leftEye: {fileID: 1279447886}
   rightEye: {fileID: 2040114112}
   mouth: {fileID: 692354524}
+  leftEyeOutside: {fileID: 1792959961}
+  rightEyeOutside: {fileID: 365926829}
   plantPlaceholder: {fileID: 1976066628}
   starPrefab: {fileID: 4355669308283669525, guid: 77985b2d3130d4eaabf41d9f09c6a06e,
     type: 3}
   meteoritePrefab: {fileID: 2282446395847786673, guid: b52d045aed33e48b69f05ed9d8b83dc6,
     type: 3}
-  crack1Prefab: {fileID: 1309305538690549829, guid: bc5971298c7f74cd6821df6ce3162068,
-    type: 3}
-  crack2Prefab: {fileID: 6137181541853144540, guid: 5bd170cda6bd14e4b8dbd0da275935c7,
-    type: 3}
-  crack3Prefab: {fileID: 3883819621932950716, guid: ae71ba3faef4746469a7e66eaacd11f6,
-    type: 3}
+  crackPrefabs:
+  - {fileID: 1309305538690549829, guid: bc5971298c7f74cd6821df6ce3162068, type: 3}
+  - {fileID: 6137181541853144540, guid: 5bd170cda6bd14e4b8dbd0da275935c7, type: 3}
+  - {fileID: 3883819621932950716, guid: ae71ba3faef4746469a7e66eaacd11f6, type: 3}
   plantPrefab: {fileID: 3778060228123397081, guid: d58020f1a9f0c495ba714a112b52358c,
     type: 3}
   mouthSprites:
@@ -779,6 +798,8 @@ MonoBehaviour:
   planetStatus: 0
   hasStar: 0
   aboveCrack: 0
+  isGameOver: 0
+  level: 1
 --- !u!4 &1158386431
 Transform:
   m_ObjectHideFlags: 0
@@ -899,7 +920,7 @@ ParticleSystemRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -1
   m_RenderMode: 0
   m_SortMode: 0
   m_MinParticleSize: 0

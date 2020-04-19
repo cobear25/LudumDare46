@@ -11,6 +11,7 @@ public class Star : MonoBehaviour
     void Start()
     {
         gameController = (GameController)FindObjectOfType(typeof(GameController));
+        Destroy(gameObject, 100);
     }
 
     // Update is called once per frame

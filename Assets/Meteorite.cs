@@ -8,7 +8,7 @@ public class Meteorite : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        Destroy(gameObject, 100);
     }
 
     // Update is called once per frame
@@ -25,7 +25,9 @@ public class Meteorite : MonoBehaviour
         if (startFading) { return; }
         if (col.gameObject.tag == "Planet") {
             GameController gc = (GameController)FindObjectOfType(typeof(GameController));
-            gc.AddCrack(col.contacts[0].point, col.contacts[0].normal);
+            if (gc.planetStatus > 0) {
+                gc.AddCrack(col.contacts[0].point, col.contacts[0].normal);
+            }
             GetComponentInChildren<ParticleSystem>().Stop();
             Destroy(gameObject, 5);
             startFading = true;

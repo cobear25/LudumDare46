@@ -5,6 +5,7 @@ using UnityEngine;
 public class GameController : MonoBehaviour
 {
     public PlayerController player;
+    public SpriteRenderer planet;
     public Transform moveToIndicator;
     public Transform hand;
     public Transform shoulder;
@@ -12,12 +13,12 @@ public class GameController : MonoBehaviour
     public Transform leftEye;
     public Transform rightEye;
     public SpriteRenderer mouth;
+    public SpriteRenderer leftEyeOutside;
+    public SpriteRenderer rightEyeOutside;
     public GameObject plantPlaceholder;
     public GameObject starPrefab;
     public GameObject meteoritePrefab;
-    public GameObject crack1Prefab;
-    public GameObject crack2Prefab;
-    public GameObject crack3Prefab;
+    public GameObject[] crackPrefabs;
     public GameObject plantPrefab;
     public Sprite[] mouthSprites;
     public Transform currentStar;
@@ -28,7 +29,10 @@ public class GameController : MonoBehaviour
     public int planetStatus = 0;
     public bool hasStar = false;
     public bool aboveCrack = false;
+    public bool isGameOver = false;
     bool canCatch = true;
+
+    public int level = 1;
 
     LineRenderer armLine;
     // Start is called before the first frame update
@@ -46,13 +50,50 @@ public class GameController : MonoBehaviour
         plantPlaceholder.GetComponentInChildren<Animator>().Play("PlantEmpty");
         plantPlaceholder.GetComponentInChildren<SpriteRenderer>().color = new Color(1, 1, 1, 0.5f);
 
+        for (int i = 0; i < 4; i++) {
+            float angle = Random.Range(0.0f, Mathf.PI * 2f);
+            if (i == 0) {
+                GameObject crack = Instantiate(crackPrefabs[i]);
+                crack.transform.position = new Vector2(Mathf.Cos(angle) * planetRadius, Mathf.Sin(angle) * planetRadius);
+                crack.transform.eulerAngles = new Vector3(0, 0, Mathf.Rad2Deg * angle - 90);
+            } else {
+                GameObject crack = Instantiate(crackPrefabs[i - 1]);
+                crack.transform.position = new Vector2(Mathf.Cos(angle) * planetRadius, Mathf.Sin(angle) * planetRadius);
+                crack.transform.eulerAngles = new Vector3(0, 0, Mathf.Rad2Deg * angle - 90);
+            }
+            planetStatus++;
+            UpdatePlanetStatus();
+        }
+
         AddStar();
-        Invoke("AddMeteorite", 5);
+        Invoke("AddMeteorite", 10);
     }
 
     // Update is called once per frame
     void Update()
     {
+        // camera zoom
+        float scroll = Input.GetAxis("Mouse ScrollWheel") * 5f;
+        Vector2 cursorPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        if (Camera.main.orthographicSize + scroll > 5 && Camera.main.orthographicSize + scroll < 10) {
+            Camera.main.orthographicSize += scroll;
+        } 
+
+        if (isGameOver) {
+            Color color = planet.color;
+            planet.color = new Color(color.r, color.g, color.b, color.a - 0.001f);
+            leftEye.GetComponent<SpriteRenderer>().color = planet.color;
+            rightEye.GetComponent<SpriteRenderer>().color = planet.color;
+            mouth.GetComponent<SpriteRenderer>().color = planet.color;
+            leftEyeOutside.color = planet.color;
+            rightEyeOutside.color = planet.color;
+            player.GetComponentInChildren<SpriteRenderer>().color = planet.color;
+            if (planet.color.a <= 0) {
+                planet.GetComponent<CircleCollider2D>().enabled = false;
+            }
+            return;
+        }
+
         // stretch arm to catch
         if (canCatch && Input.GetMouseButton(0)) {
             Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -110,15 +151,7 @@ public class GameController : MonoBehaviour
             }
         } else {
             plantPlaceholder.GetComponentInChildren<Animator>().Play("PlantEmpty");
-            Debug.Log("disable placeholder");
         }
-
-        // camera zoom
-        float scroll = Input.GetAxis("Mouse ScrollWheel") * 5f;
-        Vector2 cursorPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        if (Camera.main.orthographicSize + scroll > 5 && Camera.main.orthographicSize + scroll < 10) {
-            Camera.main.orthographicSize += scroll;
-        } 
     }
 
     private void ReleaseArm() {
@@ -155,10 +188,8 @@ public class GameController : MonoBehaviour
         plant.transform.eulerAngles = new Vector3(0, 0, Mathf.Rad2Deg * angle);
         currentStar.GetComponent<Star>().GoToTransform(plant.transform);
         hand.GetComponent<Hand>().LetGoOfStar();
-        planetStatus++;
         hasStar = false;
         Invoke("EnableCatching", 1);
-        Invoke("UpdatePlanetStatus", 7.5f);
     }
 
     public void HealCrack(GameObject crack) {
@@ -183,41 +214,73 @@ public class GameController : MonoBehaviour
     void AddStar() {
         float angle = Random.Range(0.0f, Mathf.PI * 2f);
         GameObject star = Instantiate(starPrefab, new Vector2(-16, 5), Quaternion.identity);
-        star.transform.position = new Vector2(Mathf.Cos(angle) * 16, Mathf.Sin(angle) * 16);
+        star.transform.position = new Vector2(Mathf.Cos(angle) * 18, Mathf.Sin(angle) * 18);
         // go relatively towards the center
         float xDirection = star.transform.position.x < 0 ? 1 : -1;
         float yDirection = star.transform.position.y < 0 ? 1 : -1;
         star.GetComponent<Rigidbody2D>().velocity = new Vector2(Random.Range(0.5f, 1.5f) * xDirection, Random.Range(0.5f, 1.5f) * yDirection);
-        Invoke("AddStar", Random.Range(5, 15));
+        int newStarFrequency = 15;
+        switch (level) {
+            case 1:
+                newStarFrequency = Random.Range(4, 8);
+                break;
+            case 2:
+                newStarFrequency = Random.Range(5, 10);
+                break;
+            case 3:
+                newStarFrequency = Random.Range(5, 15);
+                break;
+            case 4:
+                newStarFrequency = Random.Range(10, 20);
+                break;
+            case 5:
+                newStarFrequency = Random.Range(15, 20);
+                break;
+            default:
+                newStarFrequency = Random.Range(15, 20);
+                break;
+        }
+        Invoke("AddStar", newStarFrequency);
     }
 
     void AddMeteorite() {
         float angle = Random.Range(0.0f, Mathf.PI * 2f);
         GameObject meteorite = Instantiate(meteoritePrefab, new Vector2(0, 16), Quaternion.identity);
-        meteorite.transform.position = new Vector2(Mathf.Cos(angle) * 16, Mathf.Sin(angle) * 16);
+        meteorite.transform.position = new Vector2(Mathf.Cos(angle) * 18, Mathf.Sin(angle) * 18);
         meteorite.GetComponent<Rigidbody2D>().velocity = new Vector2(-meteorite.transform.position.x / 4, -meteorite.transform.position.y / 4);
-        Invoke("AddMeteorite", Random.Range(5, 15));
+        int newMeteoriteFrequency = 15;
+        switch (level) {
+            case 1:
+                newMeteoriteFrequency = Random.Range(15, 20);
+                break;
+            case 2:
+                newMeteoriteFrequency = Random.Range(10, 20);
+                break;
+            case 3:
+                newMeteoriteFrequency = Random.Range(10, 15);
+                break;
+            case 4:
+                newMeteoriteFrequency = Random.Range(5, 15);
+                break;
+            case 5:
+                newMeteoriteFrequency = Random.Range(5, 10);
+                break;
+            default:
+                newMeteoriteFrequency = Random.Range(5, 10);
+                break;
+        }
+        Invoke("AddMeteorite", newMeteoriteFrequency);
     }
 
     public void AddCrack(Vector2 position, Vector2 normal) {
         int rand = Random.Range(0, 3);
-        switch (rand) {
-            case 0:
-                Instantiate(crack1Prefab, position, Quaternion.FromToRotation(Vector2.up, normal));
-                break;
-            case 1:
-                Instantiate(crack2Prefab, position, Quaternion.FromToRotation(Vector2.up, normal));
-                break;
-            default:
-                Instantiate(crack3Prefab, position, Quaternion.FromToRotation(Vector2.up, normal));
-                break;
-        }
-        planetStatus--;
+        Instantiate(crackPrefabs[rand], position, Quaternion.FromToRotation(Vector2.up, normal));
+        planetStatus++;
         UpdatePlanetStatus();
     }
 
     public void CrackHealed() {
-        planetStatus++;
+        planetStatus--;
         UpdatePlanetStatus();
     }
 
@@ -229,35 +292,55 @@ public class GameController : MonoBehaviour
 
     void UpdatePlanetStatus() {
         switch (planetStatus) {
-            case 4:
+            case 0:
                 mouth.sprite = mouthSprites[0];
                 break;
-            case 3:
+            case 1:
                 mouth.sprite = mouthSprites[1];
                 break;
             case 2:
                 mouth.sprite = mouthSprites[2];
                 break;
-            case 1:
+            case 3:
                 mouth.sprite = mouthSprites[3];
                 break;
-            case 0:
+            case 4:
                 mouth.sprite = mouthSprites[4];
                 break;
-            case -1:
+            case 5:
                 mouth.sprite = mouthSprites[5];
                 break;
-            case -2:
+            case 6:
                 mouth.sprite = mouthSprites[6];
                 break;
-            case -3:
+            case 7:
                 mouth.sprite = mouthSprites[7];
                 break;
-            case -4:
+            case 8:
                 mouth.sprite = mouthSprites[8];
                 break;
             default:
                 break;
         }
+        if (planetStatus <= 0) {
+            // Level beat!
+            LevelCompleted();
+        }
+        if (planetStatus >= 8) {
+            // game over
+            GameOver();
+        }
+    }
+
+    void LevelCompleted() {
+
+    }
+
+    void GameOver() {
+        isGameOver = true;
+    }
+
+    public void StartNextLevel() {
+        level++;
     }
 }
