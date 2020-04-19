@@ -44,6 +44,7 @@ public class GameController : MonoBehaviour
         armLine.numCapVertices = 10;
         armLine.enabled = false;
         plantPlaceholder.GetComponentInChildren<Animator>().Play("PlantEmpty");
+        plantPlaceholder.GetComponentInChildren<SpriteRenderer>().color = new Color(1, 1, 1, 0.5f);
 
         AddStar();
         Invoke("AddMeteorite", 5);
@@ -101,7 +102,6 @@ public class GameController : MonoBehaviour
             plantPlaceholder.transform.position = position;
             plantPlaceholder.transform.eulerAngles = new Vector3(0, 0, Mathf.Rad2Deg * angle);
             plantPlaceholder.GetComponentInChildren<Animator>().Play("Idle");
-            plantPlaceholder.GetComponentInChildren<SpriteRenderer>().color = new Color(1, 1, 1, 0.5f);
 
             // plant a star
             if (Input.GetMouseButtonDown(0))

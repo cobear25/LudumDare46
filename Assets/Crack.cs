@@ -6,6 +6,7 @@ public class Crack : MonoBehaviour
 {
     GameController gameController;
     bool healing = false;
+    bool mouseAbove = false;
     // Start is called before the first frame update
     void Start()
     {
@@ -29,22 +30,26 @@ public class Crack : MonoBehaviour
         if (!gameController.hasStar) { return; }
         Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         if (GetComponent<BoxCollider2D>().bounds.Contains(new Vector3(mousePos.x, mousePos.y, transform.position.z))) {
+            mouseAbove = true;
             gameController.aboveCrack = true;
             GetComponent<SpriteRenderer>().color = Color.white;
             transform.localScale = new Vector2(1.1f, 1.1f);
 
             if (Input.GetMouseButtonDown(0)) {
+                gameController.HealCrack(gameObject);
                 Invoke("Heal", 0.5f);
             }
         } else {
-            gameController.aboveCrack = false;
+            if (mouseAbove) {
+                mouseAbove = false;
+                gameController.aboveCrack = false;
+            }
             GetComponent<SpriteRenderer>().color = Color.black;
             transform.localScale = new Vector2(1.0f, 1.0f);
         }
     }
 
     void Heal() {
-        gameController.HealCrack(gameObject);
         healing = true;
     }
 }
