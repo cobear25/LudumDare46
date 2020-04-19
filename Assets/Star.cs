@@ -18,6 +18,7 @@ public class Star : MonoBehaviour
     void Update()
     {
         if (goTo != null) {
+            GetComponent<Rigidbody2D>().velocity = Vector2.zero;
             transform.position = Vector2.MoveTowards(transform.position, goTo.position, 7 * Time.deltaTime);
         } 
 
@@ -28,6 +29,10 @@ public class Star : MonoBehaviour
                 Destroy(gameObject);
             }
         } 
+
+        if (gameController.levelCompleted) {
+            Destroy(gameObject);
+        }
     }
 
     public void GoToTransform(Transform t) {

@@ -18,5 +18,8 @@ public class Plant : MonoBehaviour
             Color color = GetComponent<SpriteRenderer>().color;
             GetComponent<SpriteRenderer>().color = new Color(color.r, color.g, color.b, color.a - 0.001f);
         }
+        if (gameController.levelCompleted) {
+            Destroy(gameObject);
+        }
     }
 }

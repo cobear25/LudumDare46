@@ -24,11 +24,13 @@ public class GameController : MonoBehaviour
     public GameObject[] crackPrefabs;
     public GameObject plantPrefab;
     public Sprite[] mouthSprites;
+    public Sprite[] planetSprites;
     public Transform currentStar;
     public CinemachineVirtualCamera virtualCamera;
     public Transform backGlow;
     public GameObject gameOverPanel;
     public GameObject introPanel;
+    public GameObject winPanel;
     public Text tutorialText;
     public GameObject skipTutorialButton;
 
@@ -44,7 +46,7 @@ public class GameController : MonoBehaviour
     bool canCatch = false;
     bool inTutorial = false;
 
-    public int level = 1;
+    public int level = 0;
 
     LineRenderer armLine;
     // Start is called before the first frame update
@@ -62,6 +64,16 @@ public class GameController : MonoBehaviour
         plantPlaceholder.GetComponentInChildren<Animator>().Play("PlantEmpty");
         plantPlaceholder.GetComponentInChildren<SpriteRenderer>().color = new Color(1, 1, 1, 0.5f);
 
+        AddFourCracks();
+
+        virtualCamera.enabled = false;
+        gameOverPanel.SetActive(false);
+        winPanel.SetActive(false);
+        skipTutorialButton.SetActive(false);
+        AddStar();
+    }
+
+    void AddFourCracks() {
         for (int i = 0; i < 4; i++) {
             float angle = Random.Range(0.0f, Mathf.PI * 2f);
             if (i == 0) {
@@ -76,11 +88,6 @@ public class GameController : MonoBehaviour
             planetStatus++;
             UpdatePlanetStatus();
         }
-
-        virtualCamera.enabled = false;
-        gameOverPanel.SetActive(false);
-        skipTutorialButton.SetActive(false);
-        AddStar();
     }
 
     // Update is called once per frame
@@ -244,6 +251,7 @@ public class GameController : MonoBehaviour
     private bool hasCalledTutorial2 = false;
     private int tutorialStep = 0;
     private void NextTutorialStep() {
+        if (!inTutorial) { return; }
         tutorialStep += 1;
         switch (tutorialStep) {
             case 1:
@@ -288,27 +296,27 @@ public class GameController : MonoBehaviour
 
     void AddStar() {
         float angle = Random.Range(0.0f, Mathf.PI * 2f);
-        GameObject star = Instantiate(starPrefab, new Vector2(-16, 5), Quaternion.identity);
-        star.transform.position = new Vector2(Mathf.Cos(angle) * 18, Mathf.Sin(angle) * 18);
+        GameObject star = Instantiate(starPrefab, new Vector2(-26, 5), Quaternion.identity);
+        star.transform.position = new Vector2(Mathf.Cos(angle) * 22, Mathf.Sin(angle) * 22);
         // go relatively towards the center
         float xDirection = star.transform.position.x < 0 ? 1 : -1;
         float yDirection = star.transform.position.y < 0 ? 1 : -1;
         star.GetComponent<Rigidbody2D>().velocity = new Vector2(Random.Range(0.5f, 1.5f) * xDirection, Random.Range(0.5f, 1.5f) * yDirection);
         int newStarFrequency = 15;
         switch (level) {
-            case 1:
+            case 0:
                 newStarFrequency = Random.Range(4, 8);
                 break;
-            case 2:
+            case 1:
                 newStarFrequency = Random.Range(5, 10);
                 break;
-            case 3:
+            case 2:
                 newStarFrequency = Random.Range(5, 15);
                 break;
-            case 4:
+            case 3:
                 newStarFrequency = Random.Range(10, 20);
                 break;
-            case 5:
+            case 4:
                 newStarFrequency = Random.Range(15, 20);
                 break;
             default:
@@ -323,23 +331,23 @@ public class GameController : MonoBehaviour
         meteoritesHaveBegun = true;
         float angle = Random.Range(0.0f, Mathf.PI * 2f);
         GameObject meteorite = Instantiate(meteoritePrefab, new Vector2(0, 16), Quaternion.identity);
-        meteorite.transform.position = new Vector2(Mathf.Cos(angle) * 18, Mathf.Sin(angle) * 18);
+        meteorite.transform.position = new Vector2(Mathf.Cos(angle) * 28, Mathf.Sin(angle) * 28);
         meteorite.GetComponent<Rigidbody2D>().velocity = new Vector2(-meteorite.transform.position.x / 4, -meteorite.transform.position.y / 4);
         int newMeteoriteFrequency = 15;
         switch (level) {
-            case 1:
+            case 0:
                 newMeteoriteFrequency = Random.Range(15, 20);
                 break;
-            case 2:
+            case 1:
                 newMeteoriteFrequency = Random.Range(10, 20);
                 break;
-            case 3:
+            case 2:
                 newMeteoriteFrequency = Random.Range(10, 15);
                 break;
-            case 4:
+            case 3:
                 newMeteoriteFrequency = Random.Range(5, 15);
                 break;
-            case 5:
+            case 4:
                 newMeteoriteFrequency = Random.Range(5, 10);
                 break;
             default:
@@ -427,7 +435,7 @@ public class GameController : MonoBehaviour
         }
         if (planetStatus <= 0) {
             // Level beat!
-            LevelCompleted();
+            Invoke("LevelCompleted", 1);
         }
         if (planetStatus >= 8) {
             // game over
@@ -435,8 +443,10 @@ public class GameController : MonoBehaviour
         }
     }
 
+    public bool levelCompleted = false;
     void LevelCompleted() {
-
+        levelCompleted = true;
+        winPanel.SetActive(true);
     }
 
     public void StartGame() {
@@ -453,6 +463,12 @@ public class GameController : MonoBehaviour
 
     public void StartNextLevel() {
         level++;
+        levelCompleted = false;
+        planet.sprite = planetSprites[level];
+        winPanel.SetActive(false);
+        AddFourCracks();
+        canCatch = true;
+        AddMeteorite();
     }
 
     public void TryAgain() {

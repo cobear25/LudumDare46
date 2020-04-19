@@ -5,9 +5,11 @@ using UnityEngine;
 public class Meteorite : MonoBehaviour
 {
     bool startFading = false;
+    GameController gameController;
     // Start is called before the first frame update
     void Start()
     {
+        gameController = (GameController)FindObjectOfType(typeof(GameController));
         Destroy(gameObject, 100);
     }
 
@@ -18,15 +20,17 @@ public class Meteorite : MonoBehaviour
             Color color = GetComponent<SpriteRenderer>().color;
             GetComponent<SpriteRenderer>().color = new Color(color.r, color.g, color.b, color.a - 0.001f);
         } 
+        if (gameController.levelCompleted) {
+            Destroy(gameObject);
+        }
     }
 
     void OnCollisionEnter2D(Collision2D col)
     {
         if (startFading) { return; }
         if (col.gameObject.tag == "Planet") {
-            GameController gc = (GameController)FindObjectOfType(typeof(GameController));
-            if (gc.planetStatus > 0) {
-                gc.AddCrack(col.contacts[0].point, col.contacts[0].normal);
+            if (gameController.planetStatus > 0) {
+                gameController.AddCrack(col.contacts[0].point, col.contacts[0].normal);
             }
             GetComponentInChildren<ParticleSystem>().Stop();
             Destroy(gameObject, 5);

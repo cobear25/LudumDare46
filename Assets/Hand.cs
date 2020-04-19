@@ -33,6 +33,7 @@ public class Hand : MonoBehaviour
             col.transform.parent = transform.parent;
             gameController.StarGrabbed(col.gameObject);
             col.gameObject.GetComponent<Star>().HasBeenGrabbed();
+            col.rigidbody.velocity = Vector2.zero;
         } 
     }
 
