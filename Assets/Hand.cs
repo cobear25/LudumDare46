@@ -25,7 +25,8 @@ public class Hand : MonoBehaviour
         if (col.gameObject.tag == "Star") {
             RelativeJoint2D newRelativeJoint = gameObject.AddComponent<RelativeJoint2D>();
             DistanceJoint2D newDistanceJoint2D = gameObject.AddComponent<DistanceJoint2D>();
-            newDistanceJoint2D.maxDistanceOnly = true;
+            newDistanceJoint2D.distance = 0f;
+            // newDistanceJoint2D.maxDistanceOnly = true;
             newRelativeJoint.connectedBody = col.rigidbody;
             newDistanceJoint2D.connectedBody = col.rigidbody;
             col.rigidbody.constraints = RigidbodyConstraints2D.FreezeRotation;
@@ -35,6 +36,7 @@ public class Hand : MonoBehaviour
             col.gameObject.GetComponent<Star>().HasBeenGrabbed();
             col.rigidbody.velocity = Vector2.zero;
             GetComponent<AudioSource>().Play();
+            col.transform.position = transform.position;
         } 
     }
 
